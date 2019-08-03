@@ -9,7 +9,7 @@ function draw() {
   drawAxes();
   beginShape();
   for (let i = 0; i < tShape.length; i++) {
-    vertex(tShape[i][0][0], tShape[i][1][0]);
+    vertex(tShape[i][0][0], -tShape[i][1][0]);
   }
   endShape(CLOSE);
   pop();
@@ -17,7 +17,7 @@ function draw() {
 
 function drawAxes() {
   push();
-  stroke(200, 255, 200);
+  stroke(100, 155, 100);
   line(-height / 2, 0, height / 2, 0);
   line(0, -width / 2, 0, width / 2);
   pop();

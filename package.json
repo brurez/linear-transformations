@@ -1,0 +1,14 @@
+{
+  "name": "linear-transformations",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:brurez/linear-transformations.git",
+  "author": "brurez <brunoderezende@hotmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "live-server",
+  },
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}
