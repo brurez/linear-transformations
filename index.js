@@ -5,33 +5,40 @@ const shapes = {
     [[120], [60], [1]],
     [[100], [100], [1]],
     [[20], [100], [1]],
-    [[40], [60], [1]],
+    [[40], [60], [1]]
   ]
 };
 
 const shape = shapes.arrow;
-let tShape = [...shape];
+let tShape = [shape];
 
 const Transformations = {
-  yReflection: [[-1, 0, 0], [0, 1, 0], [0, 0, 1]],
-  xReflection: [[1, 0, 0], [0, -1, 0], [0, 0, 1]],
-  xScale(amount) {
-    return [[amount, 0, 0], [0, 1, 0], [0, 0, 1]];
-  },
-  yScale(amount) {
-    return [[1, 0, 0], [0, amount, 0], [0, 0, 1]];
-  },
-  xTranslation(amount) {
-    return [[1, 0, amount], [0, 1, 0], [0, 0, 1]];
-  },
-  yTranslation(amount) {
-    return [[1, 0, 0], [0, 1, amount], [0, 0, 1]];
-  },
-  rotation(angle) {
-    const sin = Math.sin((angle * 2 * Math.PI) / 360);
-    const cos = Math.cos((angle * 2 * Math.PI) / 360);
+  matrices: {
+    yReflection(enabled) {
+      return enabled ? [[-1, 0, 0], [0, 1, 0], [0, 0, 1]] : this.identity;
+    },
+    xReflection(enabled) {
+      return enabled ? [[1, 0, 0], [0, -1, 0], [0, 0, 1]] : this.identity;
+    },
+    xScale(amount) {
+      return [[amount, 0, 0], [0, 1, 0], [0, 0, 1]];
+    },
+    yScale(amount) {
+      return [[1, 0, 0], [0, amount, 0], [0, 0, 1]];
+    },
+    xTranslation(amount) {
+      return [[1, 0, amount], [0, 1, 0], [0, 0, 1]];
+    },
+    yTranslation(amount) {
+      return [[1, 0, 0], [0, 1, amount], [0, 0, 1]];
+    },
+    rotation(angle) {
+      const sin = Math.sin((angle * 2 * Math.PI) / 360);
+      const cos = Math.cos((angle * 2 * Math.PI) / 360);
 
-    return [[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]];
+      return [[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]];
+    },
+    identity: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
   },
   compute(params) {
     const {
@@ -44,61 +51,35 @@ const Transformations = {
       yTranslation
     } = params;
 
-    for (let i = 0; i < shape.length; i++) {
-      tShape[i] = shape[i];
+    const { matrices } = this;
 
-      // compute scaling
-      tShape[i] = Matrices.multiply(
-        Transformations.xScale(xScale),
-        tShape[i]
-      );
-      tShape[i] = Matrices.multiply(
-        Transformations.yScale(yScale),
-        tShape[i]
-      );
+    const multiplyBy = [
+      matrices.xScale(xScale),
+      matrices.yScale(yScale),
+      matrices.xTranslation(xTranslation),
+      matrices.yTranslation(yTranslation),
+      matrices.rotation(rotation),
+      matrices.xReflection(xReflection),
+      matrices.yReflection(yReflection)
+    ];
 
-      // compute translation
-      tShape[i] = Matrices.multiply(
-        Transformations.xTranslation(xTranslation),
-        tShape[i]
-      );
-      tShape[i] = Matrices.multiply(
-        Transformations.yTranslation(yTranslation),
-        tShape[i]
-      );
-
-      // compute rotation
-      tShape[i] = Matrices.multiply(
-        Transformations.rotation(rotation),
-        tShape[i]
-      );
-
-      // compute reflections
-      if (yReflection) {
-        tShape[i] = Matrices.multiply(
-          Transformations.yReflection,
-          tShape[i]
-        );
+    tShape = [shape];
+    let currentShape = shape;
+    multiplyBy.forEach((matrix, index) => {
+      for (let i = 0; i < shape.length; i++) {
+        currentShape[i] = Matrices.multiply(matrix, currentShape);
       }
-      if (xReflection) {
-        tShape[i] = Matrices.multiply(
-          Transformations.xReflection,
-          tShape[i]
-        );
-      }
-    }
+      tShape.push(currentShape);
+    });
 
-    printVertex(tShape);
+    printVertex(tShape[2]);
   }
 };
 
 const Panel = {
   initialize(element) {
     this.container = document.querySelector(element);
-    this.container.addEventListener(
-      "change",
-      this.handleChange.bind(this)
-    );
+    this.container.addEventListener("change", this.handleChange.bind(this));
     const resetButton = this.container.querySelector(".resetButton");
     resetButton.addEventListener("click", this.resetState.bind(this));
     this.initialState = this.getState();

@@ -7,11 +7,13 @@ function draw() {
   push();
   translate(width / 2, height / 2);
   drawAxes();
-  beginShape();
-  for (let i = 0; i < tShape.length; i++) {
-    vertex(tShape[i][0][0], -tShape[i][1][0]);
+  for (let j = 0; j < tShape.length; j++) {
+    beginShape();
+    for (let i = 0; i < tShape[j].length; i++) {
+      vertex(tShape[j][i][0][0], -tShape[j][i][1][0]);
+    }
+    endShape(CLOSE);
   }
-  endShape(CLOSE);
   pop();
 }
 
