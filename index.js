@@ -85,6 +85,7 @@ const Panel = {
     addTransButton.onclick = e => {
       this.templates.appendTransControl(addTransSelect.value, this.controls);
       this.templates.appendDropZone(this.controls);
+      this.handleChange();
     };
 
     this.initialState = this.getState();
@@ -164,6 +165,7 @@ const Panel = {
       const remove = transItem.querySelector(".remove");
 
       remove.onclick = () =>  {
+        transItem.nextSibling.remove();
         transItem.remove();
         Panel.handleChange();
       };
