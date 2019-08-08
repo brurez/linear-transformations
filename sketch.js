@@ -3,15 +3,18 @@ function setup() {
 }
 
 function draw() {
+  const matchColors = /rgb\((\d{1,3}), (\d{1,3}), (\d{1,3})\)/;
   background(200);
   push();
   translate(width / 2, height / 2);
   drawAxes();
-  for (let j = 0; j < tShape.length; j++) {
+  for (let j = 0; j < transShapes.length; j++) {
+    const { color, points } = transShapes[j];
+    fill(color || 'rgba(255,255,255,0.6)');
     beginShape();
-    for (let i = 0; i < tShape[j].length; i++) {
-      vertex(tShape[j][i][0][0], -tShape[j][i][1][0]);
-    }
+    points.forEach(point => {
+      vertex(point[0][0], -point[1][0]);
+    });
     endShape(CLOSE);
   }
   pop();

@@ -10,15 +10,15 @@ const shapes = {
 };
 
 const shape = shapes.arrow;
-let tShape = [shape];
+let transShapes = [];
 
 const Transformations = {
   matrices: {
     yReflection(enabled) {
-      return enabled ? [[-1, 0, 0], [0, 1, 0], [0, 0, 1]] : this.identity;
+      return enabled ? [[-1, 0, 0], [0, 1, 0], [0, 0, 1]] : this.identity();
     },
     xReflection(enabled) {
-      return enabled ? [[1, 0, 0], [0, -1, 0], [0, 0, 1]] : this.identity;
+      return enabled ? [[1, 0, 0], [0, -1, 0], [0, 0, 1]] : this.identity();
     },
     xScale(amount) {
       return [[amount, 0, 0], [0, 1, 0], [0, 0, 1]];
@@ -38,28 +38,25 @@ const Transformations = {
 
       return [[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]];
     },
-    identity: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    identity() {
+      return [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    }
   },
-  compute(params) {
+  compute(state) {
     const { matrices } = this;
-
-    const transformations = [
-      "xScale",
-      "yScale",
-      "xTranslation",
-      "yTranslation",
-      "rotation",
-      "xReflection",
-      "yReflection"
-    ];
-
-    tShape = [shape];
-    let resultMatrix = this.matrices.identity;
-    transformations.forEach(trans => {
+    transShapes = [{ points: shape }];
+    let resultMatrix = this.matrices.identity();
+    state.forEach(item => {
       resultMatrix = Matrices.multiply(
-        matrices[trans](params[trans]),
+        matrices[item.transformation](item.param),
         resultMatrix
       );
+
+      const points = shape.map(point => {
+        return Matrices.multiply(resultMatrix, point);
+      });
+
+      transShapes.push({ points, color: item.color });
     });
   }
 };
@@ -75,23 +72,33 @@ const Panel = {
     this.controls = document.createElement("ul");
     this.container.appendChild(this.controls);
 
-    this.templates.appendDropZone(0, this.controls);
+    this.templates.appendDropZone(this.controls);
 
-    this.transformations.forEach((trans, index) => {
-      this.templates.appendTransControl(trans, index, this.controls);
-      this.templates.appendDropZone(index + 1, this.controls);
+    this.transformations.forEach((trans) => {
+      this.templates.appendTransControl(trans, this.controls);
+      this.templates.appendDropZone(this.controls);
     });
 
+    const addTransButton = this.container.querySelector('.addTransButton');
+    const addTransSelect = this.container.querySelector('.addTransSelect');
+
+    addTransButton.onclick = e => {
+      this.templates.appendTransControl(addTransSelect.value, this.controls);
+      this.templates.appendDropZone(this.controls);
+    };
+
     this.initialState = this.getState();
+    this.handleChange();
   },
   getState() {
     const state = [];
     const inputs = this.container.querySelectorAll("input");
     for (let input of inputs) {
+      const color = input.closest('li').dataset.color;
       if (input.type === "checkbox") {
-        state.push({ transformation: input.name, param: input.checked });
+        state.push({ color, transformation: input.name, param: !!input.checked });
       } else {
-        state.push({ transformation: input.name, param: input.value });
+        state.push({ color, transformation: input.name, param: Number(input.value) });
       }
     }
     return state;
@@ -118,10 +125,9 @@ const Panel = {
       transItems = transItems.filter(i => item.className === i.className);
       return transItems.indexOf(item);
     },
-    appendDropZone(index, targetElem) {
+    appendDropZone(targetElem) {
       const dropZone = document.createElement("div");
       dropZone.className = "drop-zone";
-      dropZone.dataset.index = index;
 
       dropZone.ondragover = function(e) {
         e.preventDefault();
@@ -139,28 +145,36 @@ const Panel = {
         e.preventDefault();
         dropZone.style.height = "0.3em";
         dropZone.style.border = "initial";
-        const index = e.dataTransfer.getData('text/plain');
-        const control = Panel.controls.querySelectorAll('.draggable')[index];
+        const index = e.dataTransfer.getData("text/plain");
+        const control = Panel.controls.querySelectorAll(".draggable")[index];
         const dropZoneBellow = control.nextSibling;
         dropZone.after(dropZoneBellow);
         dropZone.after(control);
+        Panel.handleChange();
       };
 
       targetElem.appendChild(dropZone);
     },
-    appendTransControl(trans, index, targetElem) {
+    appendTransControl(trans, targetElem) {
       const transItem = document.createElement("li");
-      transItem.className = 'draggable';
+      transItem.className = "draggable";
       transItem.innerHTML = this[trans];
+
       const handle = transItem.querySelector(".handle");
+      const remove = transItem.querySelector(".remove");
+
+      remove.onclick = () =>  {
+        transItem.remove();
+        Panel.handleChange();
+      };
+
       const handleColor =
         transItem.dataset.color ||
-        `rgb(${parseInt(Math.random() * 255)},${parseInt(
+        `rgba(${parseInt(Math.random() * 255)},${parseInt(
           Math.random() * 255
-        )},${parseInt(Math.random() * 255)})`;
+        )},${parseInt(Math.random() * 255)},0.7)`;
       handle.style.backgroundColor = handleColor;
       transItem.dataset.color = handleColor;
-      transItem.dataset.index = index;
 
       handle.onmousedown = function(e) {
         e.target.parentNode.parentNode.setAttribute("draggable", "true");
@@ -170,11 +184,11 @@ const Panel = {
         e.target.parentNode.parentNode.setAttribute("draggable", "false");
       };
 
-      transItem.ondragstart = (e) => {
+      transItem.ondragstart = e => {
         e.dataTransfer.setData("text/plain", this.getIndex(transItem));
       };
 
-      transItem.ondrag = (e) => {
+      transItem.ondrag = e => {
         transItem.style.display = "none";
       };
 
@@ -198,6 +212,7 @@ const Panel = {
           value="1"
           step="0.1"
         />
+        <span class="remove">X</span>
       </label>
     `,
     yScale: `
@@ -213,6 +228,7 @@ const Panel = {
           value="1"
           step="0.1"
         />
+        <span class="remove">X</span>
       </label>
     `,
     xTranslation: `
@@ -227,6 +243,7 @@ const Panel = {
           max="200"
           value="0"
         />
+        <span class="remove">X</span>
       </label>
     `,
     yTranslation: `
@@ -241,6 +258,7 @@ const Panel = {
           max="200"
           value="0"
         />
+        <span class="remove">X</span>
       </label>
     `,
     rotation: `
@@ -255,6 +273,7 @@ const Panel = {
           max="360"
           value="0"
         />
+        <span class="remove">X</span>
       </label>
     `,
     yReflection: `
@@ -262,6 +281,7 @@ const Panel = {
         <span class="handle">&#8597;</span>
         Y axis reflection:
         <input type="checkbox" name="yReflection" class="yReflection" />
+        <span class="remove">X</span>
       </label>
     `,
     xReflection: `
@@ -269,6 +289,7 @@ const Panel = {
         <span class="handle">&#8597;</span>
         X axis reflection:
         <input type="checkbox" name="xReflection" class="xReflection" />
+        <span class="remove">X</span>
       </label>
     `
   }

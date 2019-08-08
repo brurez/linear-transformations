@@ -47,6 +47,10 @@
         height: 0.3em;
       }
 
+      .panel .resetButton {
+        display: none;
+      }
+
       .panel button {
         border: 2px solid lime;
         background-color: transparent;
@@ -69,19 +73,24 @@
     <div class="panel">
       <ul id="transformations">
       </ul>
+      <label>
+        Add transformation
+        <select class="addTransSelect">
+          <option value="xScale">X scale</option>
+          <option value="yScale">Y scale</option>
+          <option value="xTranslation">X translation</option>
+          <option value="yTranslation">Y translation</option>
+          <option value="rotation">Rotation</option>
+          <option value="xReflection">X Reflection</option>
+          <option value="yReflection">Y Reflection</option>
+        </select>
+        <button type="button" class="addTransButton">Add</button>
+      </label>
       <button type="button" class="resetButton">Reset</button>
     </div>
 
     <script>
-      Panel.initialize(".panel", [
-        "xScale",
-        "yScale",
-        "xTranslation",
-        "yTranslation",
-        "rotation",
-        "xReflection",
-        "yReflection"
-      ]);
+      Panel.initialize(".panel", []);
     </script>
   </body>
 </html>
