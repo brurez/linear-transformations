@@ -22,6 +22,31 @@
         border-radius: 6px;
       }
 
+      .panel ul {
+        padding: 0;
+      }
+
+      .panel li {
+        border: 1px solid lime;
+        border-radius: 3px;
+        padding: 0.2em;
+        height: 1.1em;
+        display: block;
+        box-shadow: 1px 1px 1px #838383;
+      }
+
+      .panel .handle {
+        cursor: grab;
+        background-color: gray;
+        color: white;
+        padding: 0.2em;
+        border: 1px solid black;
+      }
+
+      .panel .drop-zone {
+        height: 0.3em;
+      }
+
       .panel button {
         border: 2px solid lime;
         background-color: transparent;
@@ -42,83 +67,21 @@
   </head>
   <body>
     <div class="panel">
-      <label>
-        X scale:
-        <input
-          type="range"
-          name="xScale"
-          class="xScale"
-          min="0.1"
-          max="3"
-          value="1"
-          step="0.1"
-        />
-      </label>
-      <br />
-      <label>
-        Y scale:
-        <input
-          type="range"
-          name="yScale"
-          class="yScale"
-          min="0.1"
-          max="3"
-          value="1"
-          step="0.1"
-        />
-      </label>
-      <br />
-      <label>
-        X trans.:
-        <input
-          type="range"
-          name="xTranslation"
-          class="xTranslation"
-          min="-200"
-          max="200"
-          value="0"
-        />
-      </label>
-      <br />
-      <label>
-        Y trans.:
-        <input
-          type="range"
-          name="yTranslation"
-          class="yTranslation"
-          min="-200"
-          max="200"
-          value="0"
-        />
-      </label>
-      <br />
-      <label>
-        Rotation:
-        <input
-          type="range"
-          name="rotation"
-          class="rotation"
-          min="0"
-          max="360"
-          value="0"
-        />
-      </label>
-      <br />
-      <label>
-        Y axis reflection:
-        <input type="checkbox" name="yReflection" class="yReflection" />
-      </label>
-      <br />
-      <label>
-        X axis reflection:
-        <input type="checkbox" name="xReflection" class="xReflection" />
-      </label>
-      <br />
+      <ul id="transformations">
+      </ul>
       <button type="button" class="resetButton">Reset</button>
     </div>
 
     <script>
-      Panel.initialize(".panel");
+      Panel.initialize(".panel", [
+        "xScale",
+        "yScale",
+        "xTranslation",
+        "yTranslation",
+        "rotation",
+        "xReflection",
+        "yReflection"
+      ]);
     </script>
   </body>
 </html>
